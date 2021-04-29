@@ -1,9 +1,8 @@
 const pool = require("../config/db");
 const bcrypt = require("bcrypt");
-const {
-    listen
-} = require("../routes/todos");
 const genJWToken = require("../utils/genJWToken");
+const genResetToken = require("../utils/genResetToken");
+const sendEmail = require("../utils/sendEmail");
 
 //TODO HANDLE THE  register request
 
@@ -39,11 +38,11 @@ exports.register = async (req, res, next) => {
     user = await pool.query('INSERT INTO "public"."user" ( "userName", "userEmail", "userPassword")  VALUES ( $1, $2, $3 ) RETURNING *;', [userName, userEmail, userPassword]);
 
     const token = await genJWToken(user.rows[0]);
-        if (!token) {
-            return res.status(500).json({
-                message: 'FATAL ERROR'
-            });
-        }
+    if (!token) {
+        return res.status(500).json({
+            message: 'FATAL ERROR'
+        });
+    }
 
     if (!user) {
         return res.status(500).json({
@@ -53,10 +52,10 @@ exports.register = async (req, res, next) => {
     return res.json({
         success: true,
         data: {
-            userName : user.rows[0].userName,
-            userEmail : user.rows[0].userEmail,
+            userName: user.rows[0].userName,
+            userEmail: user.rows[0].userEmail,
         },
-        accessToken : token
+        accessToken: token
     });
 
 }
@@ -120,7 +119,52 @@ exports.login = async (req, res, next) => {
 
 exports.forgotPassword = async (req, res, next) => {
 
-    res.send("hello from forgetPassword path ");
+    const {
+        userEmail
+    } = req.body;
+
+    let user = await pool.query('select * from "public"."user" where "userEmail" = $1', [userEmail]);
+
+    //if user not found he has to register in the application to use the forget password service
+    if (user.rows.length === 0) {
+        return res.status(400).json({
+            message: 'you have to register first to use this future'
+        });
+    }
+
+    //if found we have to update that user and provide a resetToken and provide a resetExpires
+
+    const resetToken = genResetToken();
+
+    const  [resetTokenOrigin , resetTokenHashed , resetTokenExpires] = resetToken;
+
+    //    return res.json({token : resetTokenOrigin , hashedToken : resetTokenHashed , resetTokenExpires : resetTokenExpires});
+
+    //updating the email that request a reset token 
+
+    user = await pool.query('UPDATE "public"."user" SET "user_reset_token" = $1,"user_reset_token_expires" = $2 RETURNING *;',[resetTokenHashed ,Math.round(resetTokenExpires / 1000)]);
+
+    // return res.json({userEmail : user.rows[0].userEmail , userResetToken : user.rows[0].user_reset_token , userTokenExpires : user.rows[0].user_reset_token_expires});
+
+    const resetUrl = `http://localhost:3000/app/api/todo/resetPassword/${resetTokenOrigin}`;
+
+    const text  = `
+        <h1>you have request to reset your password due to forget it</h1>
+        <p1>pleas follow the link to reset your password</p1>
+        <a href = ${resetUrl}>${resetUrl}</a>
+    `
+    try{
+        const info = await sendEmail({
+            to : user.rows[0].userEmail,
+            subject : `forget Password request`,
+            text : text
+        });
+
+        return res.json({ success: true  , message : info});
+    }catch(error){
+        return res.status(400).json({ message: 'failed to send the email to reset the user Password' });
+    }
+
 
 }
 

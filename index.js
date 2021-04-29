@@ -6,6 +6,7 @@ const app = express();
 
 
 app.use(express.json());
+app.use("/app/api/todo",require("./routes/auth"));
 app.use("/app/api/todo",require("./routes/todos"));
 
 

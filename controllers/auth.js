@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const genJWToken = require("../utils/genJWToken");
 const genResetToken = require("../utils/genResetToken");
 const sendEmail = require("../utils/sendEmail");
+const crypto = require("crypto");
 
 //TODO HANDLE THE  register request
 
@@ -173,6 +174,50 @@ exports.forgotPassword = async (req, res, next) => {
 
 exports.resetPassword = async (req, res, next) => {
 
-    res.send("hello from reset password path ");
+    let {userNewPassword} = req.body;
+    const {resetPasswordToken} = req.params;
+
+    if(!userNewPassword || ! resetPasswordToken){
+        return res.status(400).json({ message: 'BAD REQUEST' });
+    }
+
+    //FIRST lets work with the token 
+
+    const cryptPassword = crypto
+    .createHash("sha256")
+    .update(resetPasswordToken)
+    .digest("hex");
+
+    let user = await pool.query('select * from "public"."user" where "user_reset_token" = $1', [cryptPassword]);
+
+    // if no match within the tokens that's mean we have to refuse it 
+    if(!user){
+        return res.status(400).json({ message: 'INVALID TOKEN' });
+    }
+    // if also the timestamp recorded on the model is less than the time.now that's mean it's invalid token and he has to ask for new one
+    if(!user.rows[0]){
+        return res.status(400).json({ message: 'INVALID TOKEN' });
+    }
+
+    if(user.rows[0].user_reset_token_expires < Math.round(Date.now()/1000)){
+        return res.status(400).json({ message: 'INVALID TOKEN' });
+    }
+
+    // if all are ok 
+
+    const salt = await bcrypt.genSalt(15);
+
+    userNewPassword = await bcrypt.hash(userNewPassword, salt);
+
+    user = await pool.query('UPDATE "public"."user" SET"userPassword" = $1,"user_reset_token" = $2,"user_reset_token_expires" = $3 RETURNING *;',[userNewPassword ,null , null]);
+
+    if(!user){
+        return res.status(400).json({ message: 'error during resetting your password !' });
+    }
+
+
+    return res.json({ success : true , userEmail : user.rows[0].userEmail ,passwordReset : true });
+
+    // return res.json({userNewPassword : userNewPassword, resetPasswordToken : resetPasswordToken});
 
 }

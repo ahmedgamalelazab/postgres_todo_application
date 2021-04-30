@@ -4,10 +4,11 @@ const genJWToken = require("../utils/genJWToken");
 const genResetToken = require("../utils/genResetToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
+const {genVerifyToken} = require("../utils/genVerifyToken");
 
 //TODO HANDLE THE  register request
 
-
+//VERSION 1.1 register
 exports.register = async (req, res, next) => {
 
     const {
@@ -21,7 +22,93 @@ exports.register = async (req, res, next) => {
     if (!userName || !userEmail || !userPassword) {
         return res.status(400).json({
             message: 'Bad request'
+        });         
+    }
+
+    let user = await pool.query('select * from "public"."user" where "userEmail" = $1', [userEmail]);
+
+    if (user.rows.length > 0) {
+        return res.status(400).json({
+            message: 'This email had registered already !'
         });
+    }
+
+    const salt = await bcrypt.genSalt(15);
+
+    userPassword = await bcrypt.hash(userPassword, salt);
+
+    //send verify token to user and wait for verifying it 
+
+    const [OriginalToken , cryptToken , tokenExpires , isVerified] = await genVerifyToken();
+    // console.log(OriginalToken , cryptToken);
+    const verifyUrl =`http://localhost:3000/app/api/todo/verifyUser/${OriginalToken}`;
+
+    const message = `
+    <h1>Verify your account by following the instructions </h1>
+    <p1>pleas follow the link to verify your account</p1>
+    <a href = ${verifyUrl}>${verifyUrl}</a>
+`   
+   
+
+    try{
+        const info = await sendEmail({
+            to : userEmail,
+            subject: `Verify new Account`,
+            text : message
+        })
+        //if everything ok !
+        user = await pool.query('INSERT INTO "public"."user" ( "userName", "userEmail", "userPassword", "verify_token", "is_verified", "verify_token_expires") VALUES ( $1, $2, $3, $4, $5, $6 ) RETURNING *;', [userName, userEmail, userPassword ,cryptToken, isVerified ,Math.round(tokenExpires / 1000)]);
+        
+        res.status(201).json({
+            success : true,
+            user : user.rows[0],
+            emailSentInfo : info
+        })
+        
+    }catch(error){
+        return res.status(500).json({ message: 'SERVER FAIL TO SEND VERIFY email message' , error : error });
+    }
+    
+   
+    /*
+    const token = await genJWToken(user.rows[0]);
+    if (!token) {
+        return res.status(500).json({
+            message: 'FATAL ERROR'
+        });
+    }
+
+    if (!user) {
+        return res.status(500).json({
+            message: 'SERVER ERROR'
+        });
+    }
+    return res.json({
+        success: true,
+        data: {
+            userName: user.rows[0].userName,
+            userEmail: user.rows[0].userEmail,
+        },
+        accessToken: token
+    });
+   */
+}
+
+/*
+exports.register = async (req, res, next) => {
+
+    const {
+        userName,
+        userEmail
+    } = req.body;
+    let {
+        userPassword
+    } = req.body;
+
+    if (!userName || !userEmail || !userPassword) {
+        return res.status(400).json({
+            message: 'Bad request'
+        });         
     }
 
     let user = await pool.query('select * from "public"."user" where "userEmail" = $1', [userEmail]);
@@ -58,6 +145,42 @@ exports.register = async (req, res, next) => {
         },
         accessToken: token
     });
+
+}
+*/
+
+
+//TODO handle the verify account process here 
+
+exports.verifyAccount = async (req ,res , next)=>{
+    //in params expected to receive token Origin token = > crypt it using the same hash and search with it for someone in data base 
+    
+    const originToken = req.params.verifyToken;
+
+    let cryptTokenToSearch = crypto.
+    createHash("sha256")
+    .update(originToken)
+    .digest("hex");
+
+    //select user first 
+    let user = await pool.query('select * from "public"."user" where "verify_token" = $1', [cryptTokenToSearch]);
+    
+    if(!user || user.rows.length === 0){
+        return res.status(500).json({ message: 'server error' });
+    }
+
+    //update user 
+
+    user = await pool.query('UPDATE "public"."user" SET"verify_token" = $1,"is_verified" = $2,"verify_token_expires" = $3 RETURNING * ;',[null , true, null]);
+
+    // res.json({user : user.rows[0]})
+
+    if(user.rows[0].is_verified === true){
+        return res.json({ message: 'Thanks for verifying your account enjoy the service' });
+    }else{
+        return res.status(500).json({ message: 'failed to verifying you !' });
+    }
+
 
 }
 

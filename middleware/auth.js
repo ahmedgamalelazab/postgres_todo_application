@@ -25,9 +25,13 @@ exports.auth = async function (req, res, next) {
             });
         }
 
-        req.user = user;
+        if(user.rows[0].is_verified){
+            req.user = user.rows[0];
+            next();
+        }else{
+            return res.status(400).json({ success: false , message : "pleas verify ur account to use the service" });
+        }
 
-        next();
 
     } catch (error) {
 

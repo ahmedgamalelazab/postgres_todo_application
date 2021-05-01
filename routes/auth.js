@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const {register , login , forgotPassword , resetPassword} = require("../controllers/auth");
+const {register , login , forgotPassword , resetPassword , verifyAccount} = require("../controllers/auth");
 
 
 
@@ -7,6 +7,10 @@ const {register , login , forgotPassword , resetPassword} = require("../controll
 //TODO HANDLE  register REQUEST AS  post  REQUEST 
 
 router.route("/register").post(register);
+
+//TODO HANDLE   verify REQUEST AS post   REQUEST 
+
+router.route("/verifyUser/:verifyToken").get(verifyAccount); //FIXME
 
 //TODO HANDLE   login REQUEST AS post   REQUEST 
 

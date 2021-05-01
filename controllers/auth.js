@@ -4,10 +4,11 @@ const genJWToken = require("../utils/genJWToken");
 const genResetToken = require("../utils/genResetToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
+const {genVerifyToken} = require("../utils/genVerifyToken");
 
 //TODO HANDLE THE  register request
 
-
+//VERSION 1.1 register
 exports.register = async (req, res, next) => {
 
     const {
@@ -21,7 +22,93 @@ exports.register = async (req, res, next) => {
     if (!userName || !userEmail || !userPassword) {
         return res.status(400).json({
             message: 'Bad request'
+        });         
+    }
+
+    let user = await pool.query('select * from "public"."user" where "userEmail" = $1', [userEmail]);
+
+    if (user.rows.length > 0) {
+        return res.status(400).json({
+            message: 'This email had registered already !'
         });
+    }
+
+    const salt = await bcrypt.genSalt(15);
+
+    userPassword = await bcrypt.hash(userPassword, salt);
+
+    //send verify token to user and wait for verifying it 
+
+    const [OriginalToken , cryptToken , tokenExpires , isVerified] = await genVerifyToken();
+    // console.log(OriginalToken , cryptToken);
+    const verifyUrl =`http://localhost:3000/app/api/todo/verifyUser/${OriginalToken}`;
+
+    const message = `
+    <h1>Verify your account by following the instructions </h1>
+    <p1>pleas follow the link to verify your account</p1>
+    <a href = ${verifyUrl}>${verifyUrl}</a>
+`   
+   
+
+    try{
+        const info = await sendEmail({
+            to : userEmail,
+            subject: `Verify new Account`,
+            text : message
+        })
+        //if everything ok !
+        user = await pool.query('INSERT INTO "public"."user" ( "userName", "userEmail", "userPassword", "verify_token", "is_verified", "verify_token_expires") VALUES ( $1, $2, $3, $4, $5, $6 ) RETURNING *;', [userName, userEmail, userPassword ,cryptToken, isVerified ,Math.round(tokenExpires / 1000)]);
+        
+        res.status(201).json({
+            success : true,
+            user : user.rows[0],
+            emailSentInfo : info
+        })
+        
+    }catch(error){
+        return res.status(500).json({ message: 'SERVER FAIL TO SEND VERIFY email message' , error : error });
+    }
+    
+   
+    /*
+    const token = await genJWToken(user.rows[0]);
+    if (!token) {
+        return res.status(500).json({
+            message: 'FATAL ERROR'
+        });
+    }
+
+    if (!user) {
+        return res.status(500).json({
+            message: 'SERVER ERROR'
+        });
+    }
+    return res.json({
+        success: true,
+        data: {
+            userName: user.rows[0].userName,
+            userEmail: user.rows[0].userEmail,
+        },
+        accessToken: token
+    });
+   */
+}
+
+/*
+exports.register = async (req, res, next) => {
+
+    const {
+        userName,
+        userEmail
+    } = req.body;
+    let {
+        userPassword
+    } = req.body;
+
+    if (!userName || !userEmail || !userPassword) {
+        return res.status(400).json({
+            message: 'Bad request'
+        });         
     }
 
     let user = await pool.query('select * from "public"."user" where "userEmail" = $1', [userEmail]);
@@ -58,6 +145,42 @@ exports.register = async (req, res, next) => {
         },
         accessToken: token
     });
+
+}
+*/
+
+
+//TODO handle the verify account process here 
+//1.1.1 FIXED VERIFY BUG
+exports.verifyAccount = async (req ,res , next)=>{
+    //in params expected to receive token Origin token = > crypt it using the same hash and search with it for someone in data base 
+    
+    const originToken = req.params.verifyToken;
+
+    let cryptTokenToSearch = crypto.
+    createHash("sha256")
+    .update(originToken)
+    .digest("hex");
+
+    //select user first 
+    let user = await pool.query('select * from "public"."user" where "verify_token" = $1', [cryptTokenToSearch]);
+    
+    if(!user || user.rows.length === 0){
+        return res.status(500).json({ message: 'server error' });
+    }
+
+    //update user 
+
+    user = await pool.query('UPDATE "public"."user" SET"verify_token" = $1,"is_verified" = $2,"verify_token_expires" = $3 WHERE "verify_token" = $4 RETURNING * ;',[null , true, null,cryptTokenToSearch]);
+
+    // res.json({user : user.rows[0]})
+
+    if(user.rows[0].is_verified === true){
+        return res.json({ message: 'Thanks for verifying your account enjoy the service' });
+    }else{
+        return res.status(500).json({ message: 'failed to verifying you !' });
+    }
+
 
 }
 
@@ -117,7 +240,8 @@ exports.login = async (req, res, next) => {
 
 //TODO HANDLE THE   forget password request
 
-
+//FIXME SENDING EMAIL TO ALL USERS 
+//1.1.1 FIXED FORGET PASSWORD BUG
 exports.forgotPassword = async (req, res, next) => {
 
     const {
@@ -125,7 +249,7 @@ exports.forgotPassword = async (req, res, next) => {
     } = req.body;
 
     let user = await pool.query('select * from "public"."user" where "userEmail" = $1', [userEmail]);
-
+    // return res.send(user.rows[0]);
     //if user not found he has to register in the application to use the forget password service
     if (user.rows.length === 0) {
         return res.status(400).json({
@@ -143,7 +267,7 @@ exports.forgotPassword = async (req, res, next) => {
 
     //updating the email that request a reset token 
 
-    user = await pool.query('UPDATE "public"."user" SET "user_reset_token" = $1,"user_reset_token_expires" = $2 RETURNING *;',[resetTokenHashed ,Math.round(resetTokenExpires / 1000)]);
+    user = await pool.query('UPDATE "public"."user" SET "user_reset_token" = $1,"user_reset_token_expires" = $2 WHERE "userEmail" = $3 RETURNING *;',[resetTokenHashed ,Math.round(resetTokenExpires / 1000),userEmail]);
 
     // return res.json({userEmail : user.rows[0].userEmail , userResetToken : user.rows[0].user_reset_token , userTokenExpires : user.rows[0].user_reset_token_expires});
 
@@ -171,7 +295,7 @@ exports.forgotPassword = async (req, res, next) => {
 
 
 //TODO HANDLE THE   reset password request
-
+//1.1.1 fixed resetPassword bug
 exports.resetPassword = async (req, res, next) => {
 
     let {userNewPassword} = req.body;
@@ -209,7 +333,9 @@ exports.resetPassword = async (req, res, next) => {
 
     userNewPassword = await bcrypt.hash(userNewPassword, salt);
 
-    user = await pool.query('UPDATE "public"."user" SET"userPassword" = $1,"user_reset_token" = $2,"user_reset_token_expires" = $3 RETURNING *;',[userNewPassword ,null , null]);
+    const userEmail = user.rows[0].userEmail;
+
+    user = await pool.query('UPDATE "public"."user" SET"userPassword" = $1,"user_reset_token" = $2,"user_reset_token_expires" = $3 WHERE "userEmail" = $4 RETURNING *;',[userNewPassword ,null , null,userEmail]);
 
     if(!user){
         return res.status(400).json({ message: 'error during resetting your password !' });

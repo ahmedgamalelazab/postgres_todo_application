@@ -151,7 +151,7 @@ exports.register = async (req, res, next) => {
 
 
 //TODO handle the verify account process here 
-
+//1.1.1 FIXED VERIFY BUG
 exports.verifyAccount = async (req ,res , next)=>{
     //in params expected to receive token Origin token = > crypt it using the same hash and search with it for someone in data base 
     
@@ -171,7 +171,7 @@ exports.verifyAccount = async (req ,res , next)=>{
 
     //update user 
 
-    user = await pool.query('UPDATE "public"."user" SET"verify_token" = $1,"is_verified" = $2,"verify_token_expires" = $3 RETURNING * ;',[null , true, null]);
+    user = await pool.query('UPDATE "public"."user" SET"verify_token" = $1,"is_verified" = $2,"verify_token_expires" = $3 WHERE "verify_token" = $4 RETURNING * ;',[null , true, null,cryptTokenToSearch]);
 
     // res.json({user : user.rows[0]})
 
@@ -240,7 +240,8 @@ exports.login = async (req, res, next) => {
 
 //TODO HANDLE THE   forget password request
 
-
+//FIXME SENDING EMAIL TO ALL USERS 
+//1.1.1 FIXED FORGET PASSWORD BUG
 exports.forgotPassword = async (req, res, next) => {
 
     const {
@@ -248,7 +249,7 @@ exports.forgotPassword = async (req, res, next) => {
     } = req.body;
 
     let user = await pool.query('select * from "public"."user" where "userEmail" = $1', [userEmail]);
-
+    // return res.send(user.rows[0]);
     //if user not found he has to register in the application to use the forget password service
     if (user.rows.length === 0) {
         return res.status(400).json({
@@ -266,7 +267,7 @@ exports.forgotPassword = async (req, res, next) => {
 
     //updating the email that request a reset token 
 
-    user = await pool.query('UPDATE "public"."user" SET "user_reset_token" = $1,"user_reset_token_expires" = $2 RETURNING *;',[resetTokenHashed ,Math.round(resetTokenExpires / 1000)]);
+    user = await pool.query('UPDATE "public"."user" SET "user_reset_token" = $1,"user_reset_token_expires" = $2 WHERE "userEmail" = $3 RETURNING *;',[resetTokenHashed ,Math.round(resetTokenExpires / 1000),userEmail]);
 
     // return res.json({userEmail : user.rows[0].userEmail , userResetToken : user.rows[0].user_reset_token , userTokenExpires : user.rows[0].user_reset_token_expires});
 
@@ -294,7 +295,7 @@ exports.forgotPassword = async (req, res, next) => {
 
 
 //TODO HANDLE THE   reset password request
-
+//1.1.1 fixed resetPassword bug
 exports.resetPassword = async (req, res, next) => {
 
     let {userNewPassword} = req.body;
@@ -332,7 +333,9 @@ exports.resetPassword = async (req, res, next) => {
 
     userNewPassword = await bcrypt.hash(userNewPassword, salt);
 
-    user = await pool.query('UPDATE "public"."user" SET"userPassword" = $1,"user_reset_token" = $2,"user_reset_token_expires" = $3 RETURNING *;',[userNewPassword ,null , null]);
+    const userEmail = user.rows[0].userEmail;
+
+    user = await pool.query('UPDATE "public"."user" SET"userPassword" = $1,"user_reset_token" = $2,"user_reset_token_expires" = $3 WHERE "userEmail" = $4 RETURNING *;',[userNewPassword ,null , null,userEmail]);
 
     if(!user){
         return res.status(400).json({ message: 'error during resetting your password !' });

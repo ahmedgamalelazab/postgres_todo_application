@@ -5,9 +5,9 @@ const pool = require("../config/db");
 
 exports.getAllTodo = async (req, res, next) => {
 
-    const response = await pool.query(`
-        SELECT * FROM todo;
-    `);
+    const {user_id} = req.user; // will work as a parent
+
+    const response = await pool.query('SELECT * FROM "public"."todo" WHERE "user_id" = $1;',[user_id]);
 
     if (response) {
         return res.status(200).json({
@@ -25,14 +25,18 @@ exports.getAllTodo = async (req, res, next) => {
 
 
 //TODO handle  create todo   request 
+//TODO handle each user insertion
 
 exports.createTodo = async (req, res, next) => {
 
+    // return res.send(req.user);
+    const {user_id} = req.user; // will work as a parent
+    
     const {
         describtion
     } = req.body;
 
-    const response = await pool.query("INSERT INTO todo(describtion) VALUES ($1) RETURNING *", [describtion]);
+    const response = await pool.query('INSERT INTO "public"."todo" ( "describtion", "user_id") VALUES ( $1, $2 ) RETURNING *;', [describtion , user_id]);
 
     if (response) {
         return res.status(201).json({
@@ -52,12 +56,13 @@ exports.createTodo = async (req, res, next) => {
 
 exports.updateTodo = async (req, res, next) => {
 
+    const {user_id} = req.user;
     const todo_id = req.params.id;
     const describtion = req.body.describtion;
 
 
     try {
-        const response = await pool.query("UPDATE todo SET describtion = $1 WHERE todo_id = $2 RETURNING *", [describtion, todo_id]);
+        const response = await pool.query('UPDATE "public"."todo" SET "describtion" = $1 WHERE "todo_id" = $2 AND "user_id" = $3 RETURNING *;', [describtion, todo_id,user_id]);
         if (response) {
             res.status(201).json({
                 success: true,
@@ -86,21 +91,10 @@ exports.updateTodo = async (req, res, next) => {
 
 exports.deleteTodo = async (req, res, next) => {
 
-    //TODO use transaction to delete everything from the table and reset the counting 
-    /**
-   * BEGIN;
-    DELETE FROM todo;
-    ALTER SEQUENCE "public"."todo_todo_id_seq" RESTART 1
-    COMMIT;
-   */
+    const {user_id} = req.user;
 
   try {
-    const response = await pool.query(`
-    BEGIN;
-    DELETE FROM todo;
-    ALTER SEQUENCE todo_todo_id_seq RESTART 1;
-    COMMIT;
-`);
+    const response = await pool.query('DELETE FROM "public"."todo" WHERE "user_id" = $1;',[user_id]);
     if(response){
         return res.json({ success: true , message : "all items has been deleted !"});
     }else{
@@ -118,6 +112,8 @@ exports.deleteTodo = async (req, res, next) => {
 
 exports.deleteTodoSpecific = async (req, res, next) => {
 
+    const {user_id} = req.user;
+
     const todo_id = req.params.todo_id;
 
     if(!todo_id){
@@ -133,7 +129,7 @@ exports.deleteTodoSpecific = async (req, res, next) => {
         return res.status(400).json({ message: 'ITEM NOT FOUND' });
     }
 
-    const response = await pool.query("  DELETE FROM todo WHERE todo_id = $1" ,[todo_id]);
+    const response = await pool.query('DELETE FROM todo WHERE todo_id = $1 AND "user_id" = $2 ' ,[todo_id,user_id]);
 
    
 

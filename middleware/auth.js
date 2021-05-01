@@ -26,7 +26,7 @@ exports.auth = async function (req, res, next) {
         }
 
         if(user.rows[0].is_verified){
-            req.user = user;
+            req.user = user.rows[0];
             next();
         }else{
             return res.status(400).json({ success: false , message : "pleas verify ur account to use the service" });

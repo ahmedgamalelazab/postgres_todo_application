@@ -1,8 +1,9 @@
-<<<<<<< HEAD
 # postgres_todo_application
 simple to do CRUD application using postgres as a data base
 we will add soon regestraion form and protect routes soon only for users who only registered in my application
 
+#ui section 
+# v 1.0.0 initially ui to the project , the project still need code refines but this is not a production project so i don't care 100% for refine and extracting my code i still have to work on other projects so extractions and refining code is not on my priority list 
 ![Alt Text](https://media.giphy.com/media/RdkKvEoDt345qBr4LL/giphy.gif)
 =======
 # todo project with register form 
@@ -17,4 +18,3 @@ we will add soon regestraion form and protect routes soon only for users who onl
 
 # this project written using psql which stands for postgres sql data base and soon i will release another clone but with mongoose which stands for mongodb 
 
->>>>>>> 9eaedb7e122a9d97177c2b3e8c12a76cb0e9350c

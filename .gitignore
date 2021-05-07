@@ -1,2 +1,12 @@
+.gitignore
 config.env
 /node_modules
+/client/android/
+/client/ios/
+/client/test/
+/client/web/
+/client/.metadata
+/client/pubspec.yaml
+/client/pubspec.lock
+/client/README.md
+/client/.gitignore

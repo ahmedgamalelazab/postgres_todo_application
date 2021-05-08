@@ -145,7 +145,7 @@ exports.login = async (req, res, next) => {
                 message: 'FATAL ERROR'
             });
         }
-        return res.status(200).json({
+        return res.status(201).json({
             success: true,
             userName: user.rows[0].userName,
             userEmail: user.rows[0].userEmail,

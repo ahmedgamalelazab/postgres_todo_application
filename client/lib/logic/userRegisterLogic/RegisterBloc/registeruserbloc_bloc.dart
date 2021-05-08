@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:client/data/Models/user.dart';
+import 'package:client/data/Models/userRegister.dart';
 import 'package:client/data/repository/userRegisterRepository.dart';
 import 'package:meta/meta.dart';
 

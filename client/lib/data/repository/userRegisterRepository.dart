@@ -1,8 +1,8 @@
-import 'package:client/data/Models/user.dart';
+import 'package:client/data/Models/userRegister.dart';
 import 'package:client/data/dataProviders/userRegisterationApi.dart';
 
 class UserRegisterationProcessRepository {
-  final UserApi userApi;
+  final UserRegisterApi userApi;
 
   UserRegisterationProcessRepository({this.userApi});
 

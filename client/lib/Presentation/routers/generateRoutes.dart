@@ -22,10 +22,10 @@ class ApplicationRoutes {
           builder: (context) => TodoLoginScreen(),
         );
         break;
-      case TodoDataScreen.ScreenRoute:
-        return MaterialPageRoute(
-          builder: (context) => TodoDataScreen(),
-        );
+      // case TodoDataScreen.ScreenRoute:
+      //   return MaterialPageRoute(
+      //     builder: (context) => TodoDataScreen(),
+      //   );
       default:
         return MaterialPageRoute(
           builder: (context) => TodoSplashScreen(),

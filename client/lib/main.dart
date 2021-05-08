@@ -1,10 +1,15 @@
 import 'package:client/Presentation/routers/generateRoutes.dart';
 import 'package:client/Presentation/screen/SignupScreen.dart';
 import 'package:client/Presentation/screen/SplashScreen.dart';
+import 'package:client/Presentation/screen/todoScreen.dart';
 import 'package:client/config/Colors.dart';
+import 'package:client/data/repository/userRegisterRepository.dart';
 import 'package:client/logic/splashScreenLogic/SplashScreenCubit/splashscreen_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'data/dataProviders/userRegisterationApi.dart';
+import 'logic/userRegisterLogic/RegisterBloc/registeruserbloc_bloc.dart';
 
 void main() {
   //section of native code chekcer
@@ -18,23 +23,42 @@ class MyApplicationEntryPoint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final applicationColors = TodoColors();
-    return MultiBlocProvider(
+    return MultiRepositoryProvider(
       providers: [
-        BlocProvider(create: (context) => SplashscreenCubit()),
+        RepositoryProvider(
+          create: (context) =>
+              UserRegisterationProcessRepository(userApi: Register()),
+        )
       ],
-      child: MaterialApp(
-        home: BlocBuilder<SplashscreenCubit, SplashscreenState>(
-            builder: (context, state) {
-          if (state is SplashScreenLoading) {
-            return TodoSplashScreen();
-          } else if (state is SplashScreenLoaded) {
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => SplashscreenCubit()),
+          //FIXME
+          BlocProvider(
+            create: (context) => RegisteruserblocBloc(
+              registerRepository:
+                  RepositoryProvider.of<UserRegisterationProcessRepository>(
+                      context),
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          home: BlocBuilder<SplashscreenCubit, SplashscreenState>(
+              builder: (context, state) {
+            if (state is SplashScreenLoading) {
+              return TodoSplashScreen();
+            } else if (state is SplashScreenLoaded) {
+              return TodoSignupScreen();
+            }
             return TodoSignupScreen();
-          }
-          return TodoSignupScreen();
-        }),
-        onGenerateRoute: ApplicationRoutes.onGenerateRoutes,
-        theme: ThemeData(
-          primaryColor: applicationColors.getPrimaryColor(),
+          }),
+          routes: {
+            TodoDataScreen.ScreenRoute: (context) => TodoDataScreen(),
+          },
+          onGenerateRoute: ApplicationRoutes.onGenerateRoutes,
+          theme: ThemeData(
+            primaryColor: applicationColors.getPrimaryColor(),
+          ),
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:client/data/Models/user.dart';
 import 'package:flutter/material.dart';
 
 class TodoDataScreen extends StatelessWidget {
@@ -6,9 +7,20 @@ class TodoDataScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userDataRaw =
+        ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
     return Scaffold(
       body: Center(
-        child: Text("TodoDataScreen"),
+        child: Column(
+          children: [
+            Text(
+              userDataRaw["data"].success.toString(),
+            ),
+            Text(
+              userDataRaw["data"].user.userEmail,
+            ),
+          ],
+        ),
       ),
     );
   }

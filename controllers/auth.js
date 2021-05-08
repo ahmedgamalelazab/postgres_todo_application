@@ -28,7 +28,7 @@ exports.register = async (req, res, next) => {
     let user = await pool.query('select * from "public"."user" where "userEmail" = $1', [userEmail]);
 
     if (user.rows.length > 0) {
-        return res.status(400).json({
+        return res.status(401).json({
             message: 'This email had registered already !'
         });
     }
@@ -41,7 +41,7 @@ exports.register = async (req, res, next) => {
 
     const [OriginalToken , cryptToken , tokenExpires , isVerified] = await genVerifyToken();
     // console.log(OriginalToken , cryptToken);
-    const verifyUrl =`http://localhost:3000/app/api/todo/verifyUser/${OriginalToken}`;
+    const verifyUrl =`http://localhost:5000/app/api/todo/verifyUser/${OriginalToken}`;
 
     const message = `
     <h1>Verify your account by following the instructions </h1>

@@ -1,17 +1,20 @@
-import 'package:client/Presentation/routers/generateRoutes.dart';
-import 'package:client/Presentation/screen/SignupScreen.dart';
-import 'package:client/Presentation/screen/SplashScreen.dart';
-import 'package:client/Presentation/screen/todoScreen.dart';
-import 'package:client/config/Colors.dart';
-import 'package:client/data/dataProviders/userLoginApi.dart';
-import 'package:client/data/repository/userLoginRepository.dart';
-import 'package:client/data/repository/userRegisterRepository.dart';
-import 'package:client/logic/splashScreenLogic/SplashScreenCubit/splashscreen_cubit.dart';
-import 'package:client/logic/userLoginLogic/userLoginBloc/userlogin_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'Presentation/routers/generateRoutes.dart';
+import 'Presentation/screen/SignupScreen.dart';
+import 'Presentation/screen/SplashScreen.dart';
+import 'Presentation/screen/todoScreen.dart';
+import 'config/Colors.dart';
+import 'data/dataProviders/todoApi.dart';
+import 'data/dataProviders/userLoginApi.dart';
 import 'data/dataProviders/userRegisterationApi.dart';
+import 'data/repository/todoRepository.dart';
+import 'data/repository/userLoginRepository.dart';
+import 'data/repository/userRegisterRepository.dart';
+import 'logic/TodoLogic/TodoBloc/todo_bloc.dart';
+import 'logic/splashScreenLogic/SplashScreenCubit/splashscreen_cubit.dart';
+import 'logic/userLoginLogic/userLoginBloc/userlogin_bloc.dart';
 import 'logic/userRegisterLogic/RegisterBloc/registeruserbloc_bloc.dart';
 
 void main() {
@@ -35,6 +38,9 @@ class MyApplicationEntryPoint extends StatelessWidget {
         RepositoryProvider(
           create: (context) => LoginRepository(userLoginApi: Login()),
         ),
+        RepositoryProvider(
+          create: (context) => TodoRepository(todoApi: Todo()),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -48,9 +54,14 @@ class MyApplicationEntryPoint extends StatelessWidget {
             ),
           ),
           BlocProvider(
-              create: (context) => UserloginBloc(
-                  loginRepository:
-                      RepositoryProvider.of<LoginRepository>(context))),
+            create: (context) => UserloginBloc(
+                loginRepository:
+                    RepositoryProvider.of<LoginRepository>(context)),
+          ),
+          BlocProvider(
+            create: (context) => TodoBloc(
+                todoRepository: RepositoryProvider.of<TodoRepository>(context)),
+          ),
         ],
         child: MaterialApp(
           home: BlocBuilder<SplashscreenCubit, SplashscreenState>(

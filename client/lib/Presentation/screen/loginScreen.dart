@@ -1,13 +1,15 @@
-import 'package:client/Presentation/screen/SignupScreen.dart';
-import 'package:client/Presentation/screen/todoScreen.dart';
-import 'package:client/Presentation/widgets/loginStateScreensWidgets/InvalidUserEmailOrPassword.dart';
-import 'package:client/Presentation/widgets/loginStateScreensWidgets/userLoginInstruction.dart';
-import 'package:client/Presentation/widgets/loginStateScreensWidgets/userLoginLoadingScreen.dart';
-import 'package:client/config/Colors.dart';
-import 'package:client/config/signupRelativeDim.dart';
-import 'package:client/logic/userLoginLogic/userLoginBloc/userlogin_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../config/Colors.dart';
+import '../../config/signupRelativeDim.dart';
+import '../../logic/TodoLogic/TodoBloc/todo_bloc.dart';
+import '../../logic/userLoginLogic/userLoginBloc/userlogin_bloc.dart';
+import '../widgets/loginStateScreensWidgets/InvalidUserEmailOrPassword.dart';
+import '../widgets/loginStateScreensWidgets/userLoginInstruction.dart';
+import '../widgets/loginStateScreensWidgets/userLoginLoadingScreen.dart';
+import 'SignupScreen.dart';
+import 'todoScreen.dart';
 
 // ignore: must_be_immutable
 class TodoLoginScreen extends StatelessWidget {
@@ -297,6 +299,8 @@ class TodoLoginScreen extends StatelessWidget {
         if (state is RedirectUserToLogin) {
           Navigator.of(context).pushReplacementNamed(TodoLoginScreen.PageRoute);
         } else if (state is UserDataLoadedSuccessfully) {
+          BlocProvider.of<TodoBloc>(context)
+              .add(GetTodos(token: state.dataRaw.accessToken));
           Navigator.of(context)
               .pushReplacementNamed(TodoDataScreen.ScreenRoute, arguments: {
             "token": state.dataRaw.accessToken,

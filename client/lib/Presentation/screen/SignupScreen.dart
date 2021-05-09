@@ -3,6 +3,7 @@ import 'package:client/Presentation/screen/todoScreen.dart';
 import 'package:client/config/Colors.dart';
 import 'package:client/config/appRelativeDim.dart';
 import 'package:client/config/signupRelativeDim.dart';
+import 'package:client/logic/TodoLogic/TodoBloc/todo_bloc.dart';
 import 'package:client/logic/userRegisterLogic/RegisterBloc/registeruserbloc_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -575,6 +576,8 @@ class TodoSignupScreen extends StatelessWidget {
       );
     }, listener: (context, state) {
       if (state is LoadedUserInfo) {
+        BlocProvider.of<TodoBloc>(context)
+            .add(GetTodos(token: state.dataRaw.token));
         print(state.dataRaw.success);
         print(state.dataRaw.user.userEmail);
         Navigator.of(context)

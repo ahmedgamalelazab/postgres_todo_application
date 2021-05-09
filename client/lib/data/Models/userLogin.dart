@@ -16,7 +16,7 @@ class UserLoginProcessModel {
     success = json['success'] ?? false;
     userName = json['userName'] ?? "NoName";
     userEmail = json['userEmail'] ?? "NoEmail";
-    accessToken = json['accessToken'] ?? "NoAccessToken";
+    accessToken = json['accessToken'] ?? null;
     errorMessage = json["message"] ?? "NoError";
   }
 

@@ -27,6 +27,7 @@ class RegisteruserblocBloc
         UserRegisterationProcessModel dataRaw =
             await registerRepository.getRegisterRawData(event.formBody);
         if (dataRaw.success == true || dataRaw.user != null) {
+          print(dataRaw.token);
           yield LoadedUserInfo(dataRaw);
         } else {
           yield LoadedUserFailed(errorMessage: dataRaw.errorMessage);

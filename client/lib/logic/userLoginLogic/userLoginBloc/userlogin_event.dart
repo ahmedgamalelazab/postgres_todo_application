@@ -9,3 +9,5 @@ class LoginUserToServiceEvent extends UserloginEvent {
 
   LoginUserToServiceEvent({this.userForm});
 }
+
+class UserLogoutEvent extends UserloginEvent {}

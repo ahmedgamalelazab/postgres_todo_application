@@ -1,4 +1,7 @@
 import 'package:client/Presentation/screen/SignupScreen.dart';
+import 'package:client/Presentation/screen/todoScreen.dart';
+import 'package:client/Presentation/widgets/loginStateScreensWidgets/InvalidUserEmailOrPassword.dart';
+import 'package:client/Presentation/widgets/loginStateScreensWidgets/userLoginInstruction.dart';
 import 'package:client/Presentation/widgets/loginStateScreensWidgets/userLoginLoadingScreen.dart';
 import 'package:client/config/Colors.dart';
 import 'package:client/config/signupRelativeDim.dart';
@@ -25,7 +28,25 @@ class TodoLoginScreen extends StatelessWidget {
     return BlocConsumer<UserloginBloc, UserloginState>(
       builder: (context, state) {
         if (state is LoadingScreen) {
-          return UserLoginLoadingScreen();
+          return UserLoginLoadingScreen(
+            imagePath: "assets/images/Login.png",
+            message: "Login you in ..",
+          );
+        } else if (state is LoadingScreenOffersPartOne) {
+          return UserLoginInstructionScreen(
+            imagePath: "assets/images/instructions.png",
+            messages: ["Control Your Day With Us"],
+          );
+        } else if (state is LoadingScreenOffersPartTwo) {
+          return UserLoginInstructionScreen(
+            imagePath: "assets/images/data.png",
+            messages: ["Storage ?...Our service has No limit !"],
+          );
+        } else if (state is FailLoadData) {
+          return InvalidNameOrPassword(
+            imagePath: "assets/images/invalid.png",
+            message: state.message,
+          );
         }
         return Scaffold(
           backgroundColor: appColors.getBackGroundColor(),
@@ -272,7 +293,18 @@ class TodoLoginScreen extends StatelessWidget {
           ),
         );
       },
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state is RedirectUserToLogin) {
+          Navigator.of(context).pushReplacementNamed(TodoLoginScreen.PageRoute);
+        } else if (state is UserDataLoadedSuccessfully) {
+          Navigator.of(context)
+              .pushReplacementNamed(TodoDataScreen.ScreenRoute, arguments: {
+            "token": state.dataRaw.accessToken,
+            "userEmail": state.dataRaw.userEmail,
+            "userName": state.dataRaw.userName
+          });
+        }
+      },
     );
   }
 }

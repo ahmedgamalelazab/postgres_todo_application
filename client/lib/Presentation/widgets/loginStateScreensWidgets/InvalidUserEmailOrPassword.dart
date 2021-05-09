@@ -1,12 +1,13 @@
-import 'package:client/config/Colors.dart';
-import 'package:client/config/appRelativeDim.dart';
 import 'package:flutter/material.dart';
 
-class UserLoginLoadingScreen extends StatelessWidget {
-  final String imagePath;
-  final String message;
-  const UserLoginLoadingScreen({Key key, this.imagePath, this.message})
+import '../../../config/Colors.dart';
+import '../../../config/appRelativeDim.dart';
+
+class InvalidNameOrPassword extends StatelessWidget {
+  const InvalidNameOrPassword({Key key, this.message, this.imagePath})
       : super(key: key);
+  final String message;
+  final String imagePath;
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +36,25 @@ class UserLoginLoadingScreen extends StatelessWidget {
               height: deviceSize.height * 0.0123,
             ),
             Container(
-              child: Text(message,
-                  style: TextStyle(
-                    fontSize: deviceSize.height * 0.027765074802378,
-                    color: appColors.getPrimaryColor(),
-                  )),
+              child: Text(
+                message,
+                style: TextStyle(
+                  fontSize: deviceSize.height * 0.027765074802378,
+                  color: appColors.getPrimaryColor(),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: deviceSize.height * 0.0100,
+            ),
+            Container(
+              child: Text(
+                "Access Denied Redirecting you in Five Seconds To Login,",
+                style: TextStyle(
+                  fontSize: deviceSize.height * 0.017765074802378,
+                  color: appColors.getPrimaryColor(),
+                ),
+              ),
             ),
           ],
         ),

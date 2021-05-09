@@ -577,8 +577,12 @@ class TodoSignupScreen extends StatelessWidget {
       if (state is LoadedUserInfo) {
         print(state.dataRaw.success);
         print(state.dataRaw.user.userEmail);
-        Navigator.of(context).pushReplacementNamed(TodoDataScreen.ScreenRoute,
-            arguments: {"data": state.dataRaw});
+        Navigator.of(context)
+            .pushReplacementNamed(TodoDataScreen.ScreenRoute, arguments: {
+          "token": state.dataRaw.token,
+          "userEmail": state.dataRaw.user.userEmail,
+          "userName": state.dataRaw.user.userName
+        });
       } else if (state is LoadRegisterScreenAgain) {
         Navigator.of(context).pushReplacementNamed(TodoLoginScreen.PageRoute);
       }

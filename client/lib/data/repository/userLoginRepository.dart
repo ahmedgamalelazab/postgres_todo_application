@@ -18,8 +18,8 @@ class LoginRepository {
       print(error);
     }
     return UserLoginProcessModel(
-        accessToken: "NoToken",
-        errorMessage: "No Response",
+        accessToken: null,
+        errorMessage: "Connectivity Lost .. check your connection",
         success: false,
         userEmail: "NouserEmail",
         userName: "NouserName");

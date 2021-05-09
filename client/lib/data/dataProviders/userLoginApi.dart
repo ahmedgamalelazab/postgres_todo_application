@@ -36,8 +36,8 @@ class Login extends UserLoginApi {
       print(error);
     }
     return UserLoginProcessModel(
-        accessToken: "NoToken",
-        errorMessage: "No Response",
+        accessToken: null,
+        errorMessage: "Connectivity Lost .. check Your connection ..",
         success: false,
         userEmail: "NouserEmail",
         userName: "NouserName");

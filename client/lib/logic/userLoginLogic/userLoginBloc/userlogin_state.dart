@@ -14,4 +14,18 @@ class UserDataLoadedSuccessfully extends UserloginState {
   UserDataLoadedSuccessfully({this.dataRaw});
 }
 
-class LoadingInstruction extends UserloginState {}
+class LoadingScreenOffersPartOne extends UserloginState {}
+
+class LoadingScreenOffersPartTwo extends UserloginState {}
+
+class FailLoadData extends UserloginState {
+  final String message;
+
+  FailLoadData(this.message);
+}
+
+class RedirectUserToLogin extends UserloginState {}
+
+class UserLogoutLoadingScreen extends UserloginState {}
+
+class UserLogoutState extends UserloginState {}

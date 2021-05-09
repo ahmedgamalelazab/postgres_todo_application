@@ -58,10 +58,11 @@ exports.register = async (req, res, next) => {
         })
         //if everything ok !
         user = await pool.query('INSERT INTO "public"."user" ( "userName", "userEmail", "userPassword", "verify_token", "is_verified", "verify_token_expires") VALUES ( $1, $2, $3, $4, $5, $6 ) RETURNING *;', [userName, userEmail, userPassword ,cryptToken, isVerified ,Math.round(tokenExpires / 1000)]);
-        
+        const token = await genJWToken(user.rows[0]);
         res.status(201).json({
             success : true,
             user : user.rows[0],
+            token : token,
             emailSentInfo : info
         })
         

@@ -1,6 +1,7 @@
 class UserRegisterationProcessModel {
   bool success;
   User user;
+  String token;
   String errorMessage;
 
   UserRegisterationProcessModel({this.success, this.user, this.errorMessage});
@@ -9,6 +10,7 @@ class UserRegisterationProcessModel {
     success = json['success'] ?? false;
     user = json['user'] != null ? new User.fromJson(json['user']) : null;
     errorMessage = json['message'];
+    token = json['token'];
   }
 
   Map<String, dynamic> toJson() {
@@ -18,6 +20,7 @@ class UserRegisterationProcessModel {
       data['user'] = this.user.toJson();
     }
     data['message'] = this.errorMessage;
+    data['token'] = this.token;
     return data;
   }
 }

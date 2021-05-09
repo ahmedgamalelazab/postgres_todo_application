@@ -4,7 +4,7 @@ we will add soon regestraion form and protect routes soon only for users who onl
 
 #ui section 
 # v 1.0.0 initially ui to the project , the project still need code refines but this is not a production project so i don't give care 100% for refine and extracting my code , i still have to work on other projects, so extractions and refining code is not on my priority list 
-![Alt Text](https://media.giphy.com/media/EvKiGLxIpf6v6QPJNN/giphy.gif)
+![Alt Text](https://media.giphy.com/media/69gC7nGVIOKcSoBKIA/giphy.gif)
 =======
 # todo project with register form 
 * this project has users can do as following : 

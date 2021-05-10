@@ -2,7 +2,7 @@
 simple to do CRUD application using postgres as a data base
 we will add soon regestraion form and protect routes soon only for users who only registered in my application //deprecated //features added (true)
 
-#update but not yet on github THIS PROJECT GOT DEPLOYED AND WORKING 100% FINE WILL BE UPLOADED FULL SOURCE CODE SOON
+# update but not yet on github THIS PROJECT GOT DEPLOYED AND WORKING 100% FINE WILL BE UPLOADED FULL SOURCE CODE SOON
 
 #ui section 
 # v 1.0.0 initially ui to the project , the project still need code refines but this is not a production project so i don't give care 100% for refine and extracting my code , i still have to work on other projects, so extractions and refining code is not on my priority list 
